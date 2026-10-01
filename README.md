@@ -45,8 +45,6 @@
 
 Kampanye kupon yang dianalisis: `AKHIRBULAN25` (25%), `DISKON20` (20%), `NRMFLASH15` (15%), `GAJIAN10` (10%)
 
-![Hasil Analisis](docs/chart.png)
-
 ## Keputusan Desain
 
 | Keputusan | Alasan |
@@ -78,6 +76,8 @@ NRMFLASH15     █████████████ 16,363
 AKHIRBULAN25   █████████████ 16,005
 GAJIAN10       ██████████ 13,178
 ```
+
+![Hasil Analisis](docs/chart.png)
 
 ## Data Quality Gate
 

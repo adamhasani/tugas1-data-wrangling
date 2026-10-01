@@ -1,5 +1,7 @@
 # Tugas 1 — Data Wrangling
 
+![banner](docs/preview.png)
+
 ![Python](https://img.shields.io/badge/python-3.11-blue) ![pandas](https://img.shields.io/badge/pandas-2.x-green) ![SQLite](https://img.shields.io/badge/sqlite-3-informational) ![SQLAlchemy](https://img.shields.io/badge/sqlalchemy-2.x-red) ![status](https://img.shields.io/badge/status-lolos_validasi-brightgreen)
 
 > ETL pipeline multi-sumber: CSV + SQL + REST API → `df_master_analisis`

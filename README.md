@@ -1,6 +1,6 @@
 # Tugas 1 — Data Wrangling
 
-![Python](https://img.shields.io/badge/python-3.11-blue) ![pandas](https://img.shields.io/badge/pandas-2.x-green) ![SQLite](https://img.shields.io/badge/sqlite-3-informational) ![status](https://img.shields.io/badge/status-lolos_validasi-brightgreen)
+![Python](https://img.shields.io/badge/python-3.11-blue) ![pandas](https://img.shields.io/badge/pandas-2.x-green) ![SQLite](https://img.shields.io/badge/sqlite-3-informational) ![SQLAlchemy](https://img.shields.io/badge/sqlalchemy-2.x-red) ![status](https://img.shields.io/badge/status-lolos_validasi-brightgreen)
 
 > ETL pipeline multi-sumber: CSV + SQL + REST API → `df_master_analisis`
 
@@ -8,9 +8,15 @@
 
 ---
 
-## Studi Kasus
+## Ringkasan
 
-Sebagai Associate Data Engineer di **PT Nusantara Retail Mandiri**, diminta menganalisis performa kampanye kupon diskon: total transaksi berkupon, profil loyalitas pemakainya, dan status pengirimannya. Data tersebar di tiga departemen dengan tiga format berbeda — persis masalah klasik yang diselesaikan data wrangling.
+| | |
+|---|---|
+| **Peran** | Associate Data Engineer / Data Wrangler — PT Nusantara Retail Mandiri |
+| **Permintaan** | Head of Business Strategy (Data Owner) |
+| **Tujuan** | Analisis performa kampanye kupon diskon: volume transaksi, profil loyalitas, status pengiriman |
+| **Tantangan** | Data tersebar di 3 departemen, 3 format berbeda (CSV / SQL / JSON API) |
+| **Solusi** | Pipeline ekstraksi → validasi → integrasi → kamus data otomatis |
 
 ## Arsitektur Pipeline
 
@@ -28,6 +34,16 @@ Sebagai Associate Data Engineer di **PT Nusantara Retail Mandiri**, diminta meng
        ▼                      ▼                       ▼
   analisis kupon        generate_data_dictionary   assert × 3
 ```
+
+## Dataset
+
+| Sumber | Format | Skala | Catatan |
+|---|---|---|---|
+| Transaksi POS | CSV | 80,000 baris · 4,005 invoice · 2,832 produk · 1,904 pelanggan · 30 negara | Basis: [UCI Online Retail](https://archive.ics.uci.edu/dataset/352/online+retail); periode Des 2010 – Mar 2011 |
+| CRM | SQLite | 1,904 pelanggan, 4 tier membership | Kolom `is_active` untuk filter pelanggan aktif |
+| Logistik | JSON (mock REST) | 4,005 shipment, JSON bersarang 3 tingkat | Di-host di repo ini via raw URL, fallback lokal |
+
+Kampanye kupon yang dianalisis: `AKHIRBULAN25` (25%), `DISKON20` (20%), `NRMFLASH15` (15%), `GAJIAN10` (10%)
 
 ## Keputusan Desain
 
@@ -53,7 +69,25 @@ Silver     ██████████ 51       Delivered   █████�
 Bronze     █████████  49       In Transit  ██ 25
 Gold       ████████   46       Shipped     █ 21
 Platinum   ███████    43       Cancelled   ▏ 4
+
+Nilai transaksi per kode kupon
+DISKON20       ████████████████████ 24,015
+NRMFLASH15     █████████████ 16,363
+AKHIRBULAN25   █████████████ 16,005
+GAJIAN10       ██████████ 13,178
 ```
+
+## Data Quality Gate
+
+Semua assertions lolos sebelum dataframe dinyatakan siap analisis:
+
+```python
+assert df.duplicated(subset=['InvoiceNo','StockCode']).sum() == 0   # integritas PK
+assert (df['total_amount'] >= 0).all()                              # domain nilai
+assert (df['InvoiceDate'] <= pd.Timestamp.now()).all()              # temporal sanity
+```
+
+Data dictionary dihasilkan otomatis oleh `generate_data_dictionary()` — metadata per kolom (dtype, missing %, kardinalitas, sampel nilai) diekspor ke `kamus_data_hasil.csv`.
 
 ## Struktur Repository
 
@@ -65,16 +99,6 @@ Platinum   ███████    43       Cancelled   ▏ 4
 | `status_pengiriman.json` | Mock REST API logistik — 4,005 shipment |
 | `kamus_data_hasil.csv` | Output data dictionary otomatis |
 
-<details>
-<summary>Data quality checks (semua lolos)</summary>
-
-```python
-assert df.duplicated(subset=['InvoiceNo','StockCode']).sum() == 0   # integritas PK
-assert (df['total_amount'] >= 0).all()                              # domain nilai
-assert (df['InvoiceDate'] <= pd.Timestamp.now()).all()              # temporal sanity
-```
-</details>
-
 ## Reproducibility
 
 ```bash
@@ -83,7 +107,7 @@ assert (df['InvoiceDate'] <= pd.Timestamp.now()).all()              # temporal s
 # fallback otomatis ke file lokal jika offline
 ```
 
-Basis transaksi: [UCI Online Retail](https://archive.ics.uci.edu/dataset/352/online+retail) — data pelanggan & logistik disimulasikan konsisten dengan transaksinya.
+Dependencies: `pandas`, `numpy`, `sqlalchemy`, `requests` — semuanya pre-installed di Colab.
 
 ---
 

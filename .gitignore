@@ -1,0 +1,5 @@
+.venv/
+*.py
+nb_run.ipynb
+online_retail.csv
+__pycache__/
